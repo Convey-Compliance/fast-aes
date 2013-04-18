@@ -11,7 +11,9 @@
 #include <stdio.h>
 #include <stdint.h>
 
-#include "ruby.h"
+#ifndef NO_RUBY_FAST_AES
+  #include "ruby.h"
+#endif
 #include "fast_aes.h"
 
 /* Global boolean */
@@ -23,6 +25,7 @@ int fast_aes_do_gen_tables = 1;
   #define RSTRING_LEN(s) (RSTRING(s)->len)
 #endif
 
+#ifndef NO_RUBY_FAST_AES
 /* Ruby buckets */
 VALUE rb_cFastAES;
 
@@ -249,9 +252,8 @@ VALUE fast_aes_decrypt(
 
     /*//////////////////////////////////////////////////////////////////////////
     ////////////////////////////////////////////////////////////////////////////
-    // Strip trailing zeros, simple but effective.  This is something fucking
-		// loose-cannon rjc couldn't figure out despite being a "genius".  He needs
-		// a punch in the junk, I swear to god.
+    // Strip trailing zeros, simple but effective.  JSB: Removed swearing from comments...
+    // Why the original author had to be so arrogant to think it's OK to swear on comments
     */
     while (puiNumBytesOut > 0) {
         if (pDataOut[puiNumBytesOut - 1] != 0) break;
@@ -263,6 +265,8 @@ VALUE fast_aes_decrypt(
     free(pDataOut);
     return new_str;
 }
+
+#endif
 
 /*//////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////*/
@@ -315,7 +319,7 @@ void fast_aes_gen_tables( void )
     for( i = 0, x = 1; i < 256; i++, x ^= XTIME( x ) )
     {
         pow[i] = x;
-        log[x] = i;
+        log[x] = (uint8_t)i;
     }
 
     /* calculate the round constants */
@@ -677,8 +681,7 @@ uint32_t initial_KT3[256];
 
 /* AES key scheduling routine */
 
-int
-fast_aes_initialize_state(fast_aes_t* fast_aes)
+int fast_aes_initialize_state(fast_aes_t* fast_aes)
 {
     int i;
     uint32_t *RK, *SK;
@@ -827,8 +830,7 @@ fast_aes_initialize_state(fast_aes_t* fast_aes)
     return 0;
 }
 
-int 
-fast_aes_reinitialize_state(fast_aes_t* fast_aes)
+int fast_aes_reinitialize_state(fast_aes_t* fast_aes)
 {
     /* put round keys for encryption and decryption back to their initial
     // states so we can encrypt and decrypt new items properly
@@ -841,8 +843,7 @@ fast_aes_reinitialize_state(fast_aes_t* fast_aes)
 
 /* AES 128-bit block encryption routine */
 
-void
-fast_aes_encrypt_block(fast_aes_t* fast_aes, uint8_t input[16], uint8_t output[16])
+void fast_aes_encrypt_block(fast_aes_t* fast_aes, uint8_t input[16], uint8_t output[16])
 {
     uint32_t *RK, X0, X1, X2, X3, Y0, Y1, Y2, Y3;
 
@@ -932,8 +933,7 @@ fast_aes_encrypt_block(fast_aes_t* fast_aes, uint8_t input[16], uint8_t output[1
 
 /* AES 128-bit block decryption routine */
 
-void
-fast_aes_decrypt_block(fast_aes_t* fast_aes, uint8_t input[16], uint8_t output[16])
+void fast_aes_decrypt_block(fast_aes_t* fast_aes, uint8_t input[16], uint8_t output[16])
 {
     uint32_t *RK, X0, X1, X2, X3, Y0, Y1, Y2, Y3;
 

@@ -38,12 +38,12 @@ typedef struct {
     int nr;
 } fast_aes_t;
 
+#ifndef NO_RUBY_FAST_AES
+
 /* functions */
 void Init_fast_aes();
 VALUE fast_aes_alloc(VALUE klass);
 VALUE fast_aes_initialize(VALUE self, VALUE key);
-void fast_aes_gen_tables();
-int  fast_aes_initialize_state(fast_aes_t* fast_aes_config);
 VALUE fast_aes_key(VALUE self);
 
 /* garbage collection */
@@ -55,6 +55,10 @@ void fast_aes_module_shutdown(fast_aes_t* fast_aes_config);
 VALUE fast_aes_encrypt(VALUE self, VALUE buffer);
 
 VALUE fast_aes_decrypt(VALUE self, VALUE buffer);
+#endif
+
+int  fast_aes_initialize_state(fast_aes_t* fast_aes_config);
+void fast_aes_gen_tables();
 
 void fast_aes_encrypt_block(fast_aes_t* fast_aes, unsigned char input[16], unsigned char output[16]);
 void fast_aes_decrypt_block(fast_aes_t* fast_aes, unsigned char input[16], unsigned char output[16]);
